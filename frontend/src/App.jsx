@@ -15,11 +15,16 @@ function App() {
   const [treated, setTreated] = useState([]);
   const [query, setQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [memberAdded, setmemberAdded] = useState(false);
 
   useEffect(() => {
+    callOpportunityApi();
+  }, []);
+
+
+  const callOpportunityApi = () => {
     axios.get('http://localhost:3001/opportunities.json')
       .then(response => {
-        console.log(45679089089089)
         const { leads, qualified, booked, treated } = response.data;
 
         setLeads(leads);
@@ -30,8 +35,8 @@ function App() {
       })
       .catch(error => {
         console.error('Error fetching opportunities:', error);
-      });
-  }, []);
+      });    
+  }  
 
   const debouncedSearch = useMemo(() => debounce(async (searchQuery) => {
     try {
@@ -63,6 +68,8 @@ function App() {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      setmemberAdded(true)
 
     } catch (error) {
       console.error('Error creating member:', error);
@@ -122,22 +129,16 @@ function App() {
             <div className="fb-20">
               <label>Leads ({leads.length})</label>
               <AddOpportunity
-                sOpen={showModal}
-                onClose={handleCloseModal}
-                handleSave={handleSaveData}
+                callOpportunityApi={callOpportunityApi}
+                memberAdded={memberAdded}
               />
             </div>
 
             <div className="mt-20 mb-20">
               {leads.map((record) => (
                 <CardMenu
-                  patient={record.patient}
-                  procedure={record.procedure_name}
-                  doctor={record.doctor}
-                  lead={new Date(record.stage_history.lead).toLocaleString()}
-                  qualified={new Date(record.stage_history.qualified).toLocaleString()}
-                  booked={new Date(record.stage_history.booked).toLocaleString()}
-                  treated={new Date(record.stage_history.treated).toLocaleString()}
+                  callOpportunityApi={callOpportunityApi}
+                  record={record}
                 />
               ))}
             </div>
@@ -151,13 +152,9 @@ function App() {
             <div className="mt-20">
               {qualified.map((record) => (
                 <CardMenu
-                  patient={record.patient}
-                  procedure={record.procedure_name}
-                  doctor={record.doctor}
-                  lead={new Date(record.stage_history.lead).toLocaleString()}
-                  qualified={new Date(record.stage_history.qualified).toLocaleString()}
-                  booked={new Date(record.stage_history.booked).toLocaleString()}
-                  treated={new Date(record.stage_history.treated).toLocaleString()}
+                callOpportunityApi={callOpportunityApi}
+
+                  record={record}
                 />
               ))}
             </div>
@@ -170,13 +167,9 @@ function App() {
             <div className="mt-20">
               {booked.map((record) => (
                 <CardMenu
-                  patient={record.patient}
-                  procedure={record.procedure_name}
-                  doctor={record.doctor}
-                  lead={new Date(record.stage_history.lead).toLocaleString()}
-                  qualified={new Date(record.stage_history.qualified).toLocaleString()}
-                  booked={new Date(record.stage_history.booked).toLocaleString()}
-                  treated={new Date(record.stage_history.treated).toLocaleString()}
+                callOpportunityApi={callOpportunityApi}
+
+                  record={record}
                 />
               ))}
             </div>
@@ -189,13 +182,9 @@ function App() {
             <div className="mt-20">
               {treated.map((record) => (
                 <CardMenu
-                  patient={record.patient}
-                  procedure={record.procedure_name}
-                  doctor={record.doctor}
-                  lead={new Date(record.stage_history.lead).toLocaleString()}
-                  qualified={new Date(record.stage_history.qualified).toLocaleString()}
-                  booked={new Date(record.stage_history.booked).toLocaleString()}
-                  treated={new Date(record.stage_history.treated).toLocaleString()}
+                callOpportunityApi={callOpportunityApi}
+
+                  record={record}
                 />
               ))}
             </div>

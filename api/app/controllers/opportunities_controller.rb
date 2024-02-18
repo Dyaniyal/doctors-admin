@@ -60,6 +60,12 @@ class OpportunitiesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def opportunity_params
-      params.require(:opportunity).permit(:procedure_name, :patient_id, :doctor_id, stage_history: {})
+      params.require(:opportunity).permit(
+        :procedure_name, 
+        :patient_id, 
+        :doctor_id, 
+        :stage,
+        stage_history: {}
+      )
     end
 end

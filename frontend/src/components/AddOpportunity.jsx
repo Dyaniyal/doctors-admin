@@ -4,65 +4,107 @@ import Modal from 'react-responsive-modal';
 import 'react-responsive-modal/styles.css';
 import { Button, Form } from 'react-bootstrap';
 
-const AddOpportunity = ({ isOpen, onClose, handleSaveData }) => {
-  const [procedureName, setProcedureName] = useState('');
-  const [lead, setLead] = useState('');
-  const [qualified, setQualified] = useState('');
-  const [booked, setBooked] = useState('');
-  const [treated, setTreated] = useState('');
-  const [showModal, setShowModal] = useState(false);
+const AddOpportunity = ({ isOpen , onClose, record = {}, callOpportunityApi, memberAdded }) => {
+  const new_opportunity = !record.id
+  const stage_history = record.stage_history
+  const edit_lead = stage_history?.lead;
+  const edit_qualified = stage_history?.qualified;
+  const edit_booked = stage_history?.booked;
+  const edit_treated = stage_history?.treated;
+  const edit_doctor = record.doctor?.id;
+  const edit_patient = record.patient?.id;
+  const [procedureName, setProcedureName] = useState(record.procedure_name || '');
+  const [lead, setLead] = useState(edit_lead || '');
+  const [qualified, setQualified] = useState(edit_qualified || '');
+  const [booked, setBooked] = useState(edit_booked || '');
+  const [treated, setTreated] = useState(edit_treated || '');
+  const [showModal, setShowModal] = useState(isOpen);
   const [doctors, setDoctors] = useState([]);
-  const [doctor, setDoctor] = useState('');
+  const [doctor, setDoctor] = useState(edit_doctor || '');
   const [patients, setPatients] = useState([]);
-  const [patient, setPatient] = useState('');
+  const [patient, setPatient] = useState(edit_patient || '');
+
+
 
   const handleOpenModal = () => {
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
+    if (!new_opportunity)
+      onClose();
     setShowModal(false);
   };
 
   useEffect(() => {
+    if (isOpen) {
+      setShowModal(true);
+    }
+  }, [isOpen])
+
+  console.log(record)
+  useEffect(() => {
+    if (record.changed) {
+
+      handleSubmit();
+    }
+  }, [record.changed])
+
+  useEffect(() => {
     axios.get('http://localhost:3001/members.json')
         .then(response => {
+          console.log('call members api')
           setDoctors(response.data.doctors)
           setPatients(response.data.patients)
         })
         .catch(error => {
           console.error('Error fetching opportunities:', error);
         });
-  }, []);
+  }, [memberAdded]);
 
   const handleSubmit = () => {
     const formData = {
       procedure_name: procedureName,
       doctor_id: doctor,
       patient_id: patient,
+      stage: record.stage, 
       stage_history: {
         lead: lead,
         qualified: qualified,
         booked: booked,
         treated: treated
       }
-    }
+    };
 
-    axios.post('http://localhost:3001/opportunities.json', {opportunity: formData})
-    .then(response => {
-      console.log(response)
+    const url = record.id
+      ? `http://localhost:3001/opportunities/${record.id}`
+      : 'http://localhost:3001/opportunities';
+
+    const requestMethod = record.id ? 'PUT' : 'POST';
+
+    axios({
+      method: requestMethod,
+      url: url,
+      data: { opportunity: formData }
     })
-    .catch(error => {
-      console.error('Error fetching opportunities:', error);
-    });
+      .then(response => {
+        console.log(response);
+          callOpportunityApi();
+      })
+      .catch(error => {
+        console.error('Error fetching opportunities:', error);
+      });
+
     handleCloseModal();
   };
 
   return (
     <>
-    <button className="addmember ml-40" onClick={handleOpenModal}>Add opportunity</button>
+    {new_opportunity && 
+      <button className="addmember ml-40" onClick={handleOpenModal}>Add opportunity</button>
+    }
     <Modal open={showModal} onClose={handleCloseModal} center>
-      <h2>Add Opportunity</h2>
+      <h2> { new_opportunity ? 'Add' : 'Edit' } Opportunity</h2>
       <form>
         <div>
           <label>Procedure Name:</label>
@@ -78,6 +120,9 @@ const AddOpportunity = ({ isOpen, onClose, handleSaveData }) => {
             value={doctor}
             onChange={(e) => setDoctor(e.target.value)}
           >
+          <option value=''>
+            {'Select doctor'}
+          </option>
           {doctors.map((member) => (
             <option key={member.id} value={member.id}>
               {`${member.first_name} ${member.last_name}`}
@@ -91,6 +136,9 @@ const AddOpportunity = ({ isOpen, onClose, handleSaveData }) => {
             value={patient}
             onChange={(e) => setPatient(e.target.value)}
           >
+          <option value=''>
+            {'Select patient'}
+          </option>
           {patients.map((member) => (
             <option key={member.id} value={member.id}>
               {`${member.first_name} ${member.last_name}`}
