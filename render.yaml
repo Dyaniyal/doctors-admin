@@ -1,16 +1,6 @@
 version: "3.8"
 
 services:
-  proxy:
-    image: nginx:1.23.3-alpine
-    volumes:
-      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - "80:80"
-    depends_on:
-      - frontend
-      - api
-
   frontend:
     build:
       context: ./frontend
@@ -65,8 +55,6 @@ services:
         ]
       retries: 3
       timeout: 5s
-    volumes:
-      - postgres-data:/var/lib/postgresql/data:rw
 
   redis:
     image: redis:7.0-alpine
@@ -76,9 +64,3 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       retries: 3
       timeout: 5s
-    volumes:
-      - redis-data:/data:rw
-
-volumes:
-  postgres-data:
-  redis-data:
